@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../components/axiosInstance';
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -33,22 +34,17 @@ const OrderList = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/orders', {
+      const response = await axiosInstance.get('/api/admin/orders', {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          Authorization: `Bearer ${user.token}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-
-      const data = await response.json();
-      setOrders(Array.isArray(data) ? data : []);
+      setOrders(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -73,34 +69,31 @@ const OrderList = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/orders/${orderId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      await axiosInstance.put(
+        `/api/admin/orders/${orderId}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`
+          }
+        }
+      );
 
       fetchOrders();
       handleClose();
     } catch (error) {
       console.error('Error updating order:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message);
     }
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      'pending': 'warning',
-      'processing': 'info',
-      'shipped': 'primary',
-      'delivered': 'success',
-      'cancelled': 'error'
+      pending: 'warning',
+      processing: 'info',
+      shipped: 'primary',
+      delivered: 'success',
+      cancelled: 'error'
     };
     return colors[status] || 'default';
   };
@@ -149,7 +142,7 @@ const OrderList = () => {
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order._id}>
-                <TableCell>{order._id.substring(order._id.length - 6)}</TableCell>
+                <TableCell>{order._id.slice(-6)}</TableCell>
                 <TableCell>{order.user?.name || 'Unknown'}</TableCell>
                 <TableCell>{order.items?.length || 0} items</TableCell>
                 <TableCell>${calculateOrderTotal(order.items || [])}</TableCell>
@@ -162,11 +155,7 @@ const OrderList = () => {
                 </TableCell>
                 <TableCell>{formatDate(order.createdAt)}</TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleOpen(order)}
-                    color="primary"
-                  >
+                  <IconButton size="small" onClick={() => handleOpen(order)} color="primary">
                     <EditIcon />
                   </IconButton>
                 </TableCell>
@@ -179,7 +168,7 @@ const OrderList = () => {
       {/* Order Details Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          Order Details - #{selectedOrder?._id.substring(selectedOrder?._id.length - 6)}
+          Order Details - #{selectedOrder?._id.slice(-6)}
         </DialogTitle>
         <DialogContent>
           {selectedOrder && (
@@ -207,7 +196,7 @@ const OrderList = () => {
                     <TableRow key={index}>
                       <TableCell>{item.product?.name}</TableCell>
                       <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${item.price?.toFixed(2)}</TableCell>
+                      <TableCell align="right">${(item.price || 0).toFixed(2)}</TableCell>
                       <TableCell align="right">
                         ${((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                       </TableCell>

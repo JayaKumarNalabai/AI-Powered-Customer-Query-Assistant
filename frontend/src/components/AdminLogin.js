@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa';
 import ParticlesBackground from './common/ParticlesBackground';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../components/axiosInstance';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/admin/login', formData);
+      const res = await axiosInstance.post('/api/auth/admin/login', formData);
       console.log('Admin login response:', res.data);
 
       // Validate role before proceeding

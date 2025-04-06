@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import ParticlesBackground from './common/ParticlesBackground';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../components/axiosInstance';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const res = await axiosInstance.post('/api/auth/login', formData);
       console.log('Login response:', res.data);
 
       await login({

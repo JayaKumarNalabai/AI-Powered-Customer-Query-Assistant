@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
-
+import axiosInstance from '../components/axiosInstance';
 const Chat = ({ onNewMessage, initialMessages = [], standalone = false }) => {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
@@ -24,7 +24,7 @@ const Chat = ({ onNewMessage, initialMessages = [], standalone = false }) => {
     if (standalone) {
       const fetchMessages = async () => {
         try {
-          const response = await fetch('http://localhost:5000/api/chat', {
+          const response = await axiosInstance.get('/api/chat', {
             headers: { 
               'Authorization': `Bearer ${user?.token}`,
               'Content-Type': 'application/json'

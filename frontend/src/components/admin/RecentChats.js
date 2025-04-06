@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -7,10 +7,57 @@ import {
   TableRow,
   Box,
   Typography,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
+import axiosInstance from '../components/axiosInstance'; // adjust path if needed
+import { useAuth } from '../../context/AuthContext'; // adjust path if needed
 
-const RecentChats = ({ chats = [] }) => {
+const RecentChats = () => {
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await axiosInstance.get('/api/admin/recent-chats', {
+          headers: {
+            Authorization: `Bearer ${user.token}`
+          }
+        });
+        setChats(response.data || []);
+      } catch (err) {
+        console.error('Error fetching recent chats:', err);
+        setError('Failed to load recent chats');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.token) {
+      fetchChats();
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
   if (chats.length === 0) {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>

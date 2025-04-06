@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from './Navbar';
-
+import axiosInstance from '../components/axiosInstance';
 const ProductSearch = () => {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState('');
@@ -11,7 +11,7 @@ const ProductSearch = () => {
     const fetchProducts = async () => {
       const token = localStorage.getItem('token');
       try {
-        const res = await axios.get('http://localhost:5000/api/products', {
+        const res = await axiosInstance.get('/api/products', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProducts(res.data);
@@ -26,8 +26,8 @@ const ProductSearch = () => {
     if (!query.trim()) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/chat',
+      const res = await axiosInstance.post(
+        '/api/chat',
         { message: query },
         { headers: { Authorization: `Bearer ${token}` } }
       );

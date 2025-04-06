@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import axiosInstance from '../components/axiosInstance';
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const AdminRegister = () => {
 
     try {
       console.log('Sending admin registration request:', { ...formData, adminKey: '[HIDDEN]' });
-      const res = await axios.post('http://localhost:5000/api/auth/register/admin', formData);
+      const res = await axiosInstance.post('/api/auth/register/admin', formData);
       console.log('Registration response:', res.data);
       navigate('/login');
     } catch (err) {

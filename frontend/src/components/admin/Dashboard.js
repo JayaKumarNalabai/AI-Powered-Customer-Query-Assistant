@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Typography, Paper, Container, CircularProgress, Alert } from '@mui/material';
+import {
+  Box,
+  Grid,
+  Typography,
+  Paper,
+  Container,
+  CircularProgress,
+  Alert
+} from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import StatCard from './StatCard';
 import RecentOrders from './RecentOrders';
 import RecentChats from './RecentChats';
 import ProductStats from './ProductStats';
+import axiosInstance from '../components/axiosInstance';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -24,9 +33,9 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('http://localhost:5000/api/admin/stats', {
+        const response = await axiosInstance.get('/api/admin/stats', {
           headers: {
-            'Authorization': `Bearer ${user.token}`,
+            Authorization: `Bearer ${user.token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -35,12 +44,9 @@ const Dashboard = () => {
           logout();
           throw new Error('Session expired. Please login again.');
         }
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard stats');
-        }
-        
-        const data = await response.json();
+
+        const data = response.data;
+
         if (!data || typeof data !== 'object') {
           throw new Error('Invalid data received from server');
         }
@@ -48,8 +54,11 @@ const Dashboard = () => {
         setStats(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
-        setError(error.message);
-        if (error.message.includes('Session expired')) {
+        const errMsg =
+          error.response?.data?.message || error.message || 'Failed to fetch dashboard stats';
+        setError(errMsg);
+
+        if (errMsg.includes('Session expired')) {
           logout();
         }
       } finally {
@@ -87,7 +96,6 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3}>
-        {/* Stats Cards */}
         <Grid item xs={12} md={3}>
           <StatCard
             title="Total Users"
@@ -117,7 +125,6 @@ const Dashboard = () => {
           />
         </Grid>
 
-        {/* Recent Orders */}
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>
@@ -127,7 +134,6 @@ const Dashboard = () => {
           </Paper>
         </Grid>
 
-        {/* Product Stats */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>
@@ -137,7 +143,6 @@ const Dashboard = () => {
           </Paper>
         </Grid>
 
-        {/* Recent Chats */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>

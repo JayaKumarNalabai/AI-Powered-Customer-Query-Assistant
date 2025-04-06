@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -7,10 +7,19 @@ import {
   TableRow,
   Chip,
   Box,
-  Typography
+  Typography,
+  CircularProgress,
+  Alert
 } from '@mui/material';
+import axiosInstance from '../components/axiosInstance'; // adjust path if needed
+import { useAuth } from '../../context/AuthContext'; // adjust path if needed
 
-const RecentOrders = ({ orders = [] }) => {
+const RecentOrders = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
+
   const getStatusColor = (status) => {
     const colors = {
       'pending': 'warning',
@@ -21,6 +30,44 @@ const RecentOrders = ({ orders = [] }) => {
     };
     return colors[status] || 'default';
   };
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axiosInstance.get('/api/admin/recent-orders', {
+          headers: {
+            Authorization: `Bearer ${user.token}`
+          }
+        });
+        setOrders(response.data || []);
+      } catch (err) {
+        console.error('Error fetching recent orders:', err);
+        setError('Failed to load recent orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.token) {
+      fetchOrders();
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -48,8 +95,8 @@ const RecentOrders = ({ orders = [] }) => {
             <TableCell>{order.user?.name || 'Unknown'}</TableCell>
             <TableCell>${order.total?.toFixed(2) || '0.00'}</TableCell>
             <TableCell>
-              <Chip 
-                label={order.status} 
+              <Chip
+                label={order.status}
                 color={getStatusColor(order.status)}
                 size="small"
               />

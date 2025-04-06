@@ -1,28 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  CircularProgress,
-  Alert,
-  Chip,
-  TextField,
-  Stack
+  Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead,
+  TableRow, IconButton, Dialog, DialogTitle, DialogContent,
+  DialogActions, Button, Typography, CircularProgress, Alert, Chip,
+  TextField, Stack
 } from '@mui/material';
 import { Edit as EditIcon, Block as BlockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../../components/axiosInstance';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -35,22 +20,12 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${user.token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-
-      const data = await response.json();
-      setUsers(Array.isArray(data) ? data : []);
+      const response = await axiosInstance.get('/admin/users');
+      setUsers(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setError(error.message);
+      setError(error.message || 'Failed to fetch users');
       setUsers([]);
     } finally {
       setLoading(false);
@@ -75,23 +50,11 @@ const UserList = () => {
 
   const handleStatusChange = async (userId, isActive) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify({ isActive })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update user status');
-      }
-
+      await axiosInstance.put(`/admin/users/${userId}`, { isActive });
       fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
-      setError(error.message);
+      setError(error.message || 'Failed to update user status');
     }
   };
 
@@ -184,36 +147,11 @@ const UserList = () => {
         <DialogContent>
           {selectedUser && (
             <Stack spacing={2} sx={{ mt: 2 }}>
-              <TextField
-                label="Name"
-                value={selectedUser.name}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Email"
-                value={selectedUser.email}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Role"
-                value={selectedUser.role}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Status"
-                value={selectedUser.isActive ? 'Active' : 'Inactive'}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Joined Date"
-                value={new Date(selectedUser.createdAt).toLocaleString()}
-                fullWidth
-                disabled
-              />
+              <TextField label="Name" value={selectedUser.name} fullWidth disabled />
+              <TextField label="Email" value={selectedUser.email} fullWidth disabled />
+              <TextField label="Role" value={selectedUser.role} fullWidth disabled />
+              <TextField label="Status" value={selectedUser.isActive ? 'Active' : 'Inactive'} fullWidth disabled />
+              <TextField label="Joined Date" value={new Date(selectedUser.createdAt).toLocaleString()} fullWidth disabled />
             </Stack>
           )}
         </DialogContent>

@@ -28,6 +28,7 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../components/axiosInstance';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -40,22 +41,19 @@ const ChatList = () => {
   const fetchChats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/chats', {
+      const response = await axiosInstance.get('/api/admin/chats', {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          Authorization: `Bearer ${user.token}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch chats');
-      }
-
-      const data = await response.json();
-      setChats(Array.isArray(data) ? data : []);
+      setChats(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (error) {
       console.error('Error fetching chats:', error);
-      setError(error.message);
+      setError(
+        error.response?.data?.message || error.message || 'Failed to fetch chats'
+      );
     } finally {
       setLoading(false);
     }
@@ -80,21 +78,18 @@ const ChatList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this chat?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/admin/chats/${id}`, {
-          method: 'DELETE',
+        await axiosInstance.delete(`/api/admin/chats/${id}`, {
           headers: {
-            'Authorization': `Bearer ${user.token}`
+            Authorization: `Bearer ${user.token}`
           }
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete chat');
-        }
-
-        await fetchChats();
+        await fetchChats(); // Refresh list
       } catch (error) {
         console.error('Error deleting chat:', error);
-        alert(error.message);
+        alert(
+          error.response?.data?.message || error.message || 'Failed to delete chat'
+        );
       }
     }
   };

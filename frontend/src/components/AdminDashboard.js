@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import axiosInstance from '../components/axiosInstance';
 // ✅ Main Admin Dashboard Component
 const AdminDashboard = () => {
   const [chats, setChats] = useState([]);
@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/admin/chats', {
+      const response = await axiosInstance.get('/api/admin/chats', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setChats(response.data);
@@ -37,7 +37,7 @@ const AdminDashboard = () => {
   const deleteChat = async (chatId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/admin/chats/${chatId}`, {
+      await axiosInstance.delete(`/api/admin/chats/${chatId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setChats(prevChats => prevChats.filter(chat => chat._id !== chatId));

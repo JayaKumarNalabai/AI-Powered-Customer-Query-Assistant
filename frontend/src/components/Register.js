@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserPlus } from 'react-icons/fa';
 import ParticlesBackground from './common/ParticlesBackground';
+import axiosInstance from '../components/axiosInstance';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const Register = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', {
+      const res = await axiosInstance.post('/api/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,

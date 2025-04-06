@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../components/axiosInstance';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -46,17 +47,12 @@ const ProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/admin/products', {
+      const response = await axiosInstance.get('/api/admin/products', {
         headers: {
-          'Authorization': `Bearer ${user.token}`
-        }
+          Authorization: `Bearer ${user.token}`,
+        },
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      
-      const data = await response.json();
+      const data = response.data;
       setProducts(Array.isArray(data) ? data : []);
       setError(null);
     } catch (error) {
@@ -109,21 +105,18 @@ const ProductList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = selectedProduct
-        ? `http://localhost:5000/api/admin/products/${selectedProduct._id}`
-        : 'http://localhost:5000/api/admin/products';
-      
-      const response = await fetch(url, {
-        method: selectedProduct ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save product');
+      if (selectedProduct) {
+        await axiosInstance.put(`/api/admin/products/${selectedProduct._id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+      } else {
+        await axiosInstance.post('/api/admin/products', formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
       }
 
       handleClose();
@@ -137,17 +130,11 @@ const ProductList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/admin/products/${id}`, {
-          method: 'DELETE',
+        await axiosInstance.delete(`/api/admin/products/${id}`, {
           headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
+            Authorization: `Bearer ${user.token}`,
+          },
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete product');
-        }
-
         fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
