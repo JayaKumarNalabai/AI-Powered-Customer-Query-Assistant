@@ -19,12 +19,20 @@ const app = express();
 // Middleware
 // app.use(cors());
 const allowedOrigins = [
-  'https://ai-powered-customer-query-assistant-1m2u2c0rr.vercel.app',
-  'http://localhost:3000' // For local development
+  'http://localhost:3000',
+  'https://ai-powered-customer-query-assistant-snowy.vercel.app'
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
