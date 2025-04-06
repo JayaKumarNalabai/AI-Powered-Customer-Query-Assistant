@@ -28,7 +28,7 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import axiosInstance from '../components/axiosInstance';
+import axiosInstance from '../axiosInstance';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);

@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Block as BlockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import axiosInstance from '../../components/axiosInstance';
+import axiosInstance from '../axiosInstance';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);

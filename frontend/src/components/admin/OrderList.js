@@ -21,8 +21,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import axiosInstance from '../components/axiosInstance';
-
+import axiosInstance from '../axiosInstance';
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);

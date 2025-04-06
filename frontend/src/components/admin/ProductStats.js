@@ -10,7 +10,7 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import axiosInstance from '../components/axiosInstance'; // Adjust path if needed
+import axiosInstance from '../axiosInstance';
 import { useAuth } from '../../context/AuthContext'; // Adjust path if needed
 
 const ProductStats = () => {

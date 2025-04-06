@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import axiosInstance from '../components/axiosInstance'; // adjust path if needed
+import axiosInstance from '../axiosInstance';
 import { useAuth } from '../../context/AuthContext'; // adjust path if needed
 
 const RecentChats = () => {

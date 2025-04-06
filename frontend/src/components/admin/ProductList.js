@@ -23,8 +23,7 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
-import axiosInstance from '../components/axiosInstance';
-
+import axiosInstance from '../axiosInstance';
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);

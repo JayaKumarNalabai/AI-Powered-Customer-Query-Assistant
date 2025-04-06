@@ -13,7 +13,7 @@ import StatCard from './StatCard';
 import RecentOrders from './RecentOrders';
 import RecentChats from './RecentChats';
 import ProductStats from './ProductStats';
-import axiosInstance from '../components/axiosInstance';
+import axiosInstance from '../axiosInstance';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
