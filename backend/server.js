@@ -17,7 +17,17 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+const allowedOrigins = [
+  'https://ai-powered-customer-query-assistant-1m2u2c0rr.vercel.app',
+  'http://localhost:3000' // For local development
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
