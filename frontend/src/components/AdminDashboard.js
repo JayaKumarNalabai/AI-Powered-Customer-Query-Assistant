@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../components/axiosInstance';
+import axiosInstance from './axiosInstance';
 // ✅ Main Admin Dashboard Component
 const AdminDashboard = () => {
   const [chats, setChats] = useState([]);
