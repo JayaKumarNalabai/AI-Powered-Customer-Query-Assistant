@@ -23,6 +23,12 @@ const allowedOrigins = [
   'https://ai-powered-customer-query-assistant-snowy.vercel.app'
 ];
 
+
+
+app.use(express.json());
+
+app.options('*', cors());
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -35,8 +41,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-
-app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
