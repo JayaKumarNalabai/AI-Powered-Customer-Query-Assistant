@@ -77,14 +77,14 @@ function App() {
       />
       
       {/* Protected Admin Routes */}
-      <Route
+      {/* <Route
         path="/admin"
         element={
           <ProtectedAdminRoute>
             <AdminLayout />
           </ProtectedAdminRoute>
         }
-      />
+      /> */}
       <Route
         path="/admin/*"
         element={
