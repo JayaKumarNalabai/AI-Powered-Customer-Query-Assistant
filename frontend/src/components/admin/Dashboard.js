@@ -17,7 +17,7 @@ import axiosInstance from '../axiosInstance';
 import { useAuth } from '../../context/AuthContext';
 
 const Dashboard = () => {
-  const { token, logoutUser } = useAuth();
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,7 +29,7 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const headers = {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${user?.token}`,
       };
 
       const [statsRes, ordersRes, chatsRes, productsRes] = await Promise.all([
@@ -45,7 +45,7 @@ const Dashboard = () => {
       setProductStats(productsRes.data);
     } catch (err) {
       if (err.response?.status === 401) {
-        logoutUser();
+        logout();
       } else {
         setError('Failed to load dashboard data');
       }
