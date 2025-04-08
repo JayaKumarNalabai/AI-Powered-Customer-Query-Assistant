@@ -20,7 +20,7 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/admin/users');
+      const response = await axiosInstance.get('/api/admin/users');
       setUsers(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (error) {
