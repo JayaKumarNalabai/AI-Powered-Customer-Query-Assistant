@@ -12,7 +12,7 @@ import {
   Alert
 } from '@mui/material';
 import axiosInstance from '../axiosInstance';
-import { useAuth } from '../../context/AuthContext'; // adjust path if needed
+import { useAuth } from '../../context/AuthContext';
 
 const RecentOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -32,24 +32,32 @@ const RecentOrders = () => {
   };
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchRecentOrders = async () => {
       try {
-        const response = await axiosInstance.get('/api/admin/recent-orders', {
+        const response = await axiosInstance.get('/api/admin/orders', {
           headers: {
             Authorization: `Bearer ${user.token}`
           }
         });
-        setOrders(response.data || []);
+
+        const sortedOrders = (response.data || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        const recentFive = sortedOrders.slice(0, 5);
+        setOrders(recentFive);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching recent orders:', err);
+        console.error('Error fetching orders:', err);
         setError('Failed to load recent orders');
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
 
     if (user?.token) {
-      fetchOrders();
+      fetchRecentOrders();
     }
   }, [user]);
 
@@ -93,7 +101,7 @@ const RecentOrders = () => {
           <TableRow key={order._id}>
             <TableCell>{order._id.slice(-6)}</TableCell>
             <TableCell>{order.user?.name || 'Unknown'}</TableCell>
-            <TableCell>${order.total?.toFixed(2) || '0.00'}</TableCell>
+            <TableCell>${order.items?.reduce((acc, item) => acc + (item.price || 0) * (item.quantity || 0), 0).toFixed(2)}</TableCell>
             <TableCell>
               <Chip
                 label={order.status}
