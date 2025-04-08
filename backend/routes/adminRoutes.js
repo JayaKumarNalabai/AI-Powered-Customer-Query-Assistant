@@ -144,7 +144,7 @@ router.put('/orders/:id', protect, adminAuth, async (req, res) => {
 });
 
 // User Management Routes
-router.get('/users', protect, adminAuth, async (req, res) => {
+router.get('/admin/users', protect, adminAuth, async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     res.json(users);
