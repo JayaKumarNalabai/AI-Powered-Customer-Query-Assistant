@@ -4,12 +4,12 @@ import adminAuth from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
-// @route   GET /api/products
+// @route   GET /api/admin/products
 // @desc    Get all products
-// @access  Public
-router.get('/', async (req, res) => {
+// @access  Admin only
+router.get('/', adminAuth, async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
     console.error('Fetch products error:', error.message);
@@ -17,11 +17,11 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   POST /api/products
+// @route   POST /api/admin/products
 // @desc    Add a new product
 // @access  Admin only
 router.post('/', adminAuth, async (req, res) => {
-  const { name, description, price, stock } = req.body;
+  const { name, description, price, stock, category, isActive } = req.body;
 
   try {
     const product = new Product({
@@ -29,6 +29,9 @@ router.post('/', adminAuth, async (req, res) => {
       description,
       price,
       stock,
+      category,
+      isActive,
+      createdBy: req.user.id // From adminAuth middleware
     });
 
     await product.save();
@@ -39,10 +42,60 @@ router.post('/', adminAuth, async (req, res) => {
   }
 });
 
-// @route   GET /api/products/:id
+// @route   PUT /api/admin/products/:id
+// @desc    Update a product
+// @access  Admin only
+router.put('/:id', adminAuth, async (req, res) => {
+  const { name, description, price, stock, category, isActive } = req.body;
+
+  try {
+    let product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        description,
+        price,
+        stock,
+        category,
+        isActive
+      },
+      { new: true }
+    );
+
+    res.json(product);
+  } catch (error) {
+    console.error('Update product error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/admin/products/:id
+// @desc    Delete a product
+// @access  Admin only
+router.delete('/:id', adminAuth, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product removed' });
+  } catch (error) {
+    console.error('Delete product error:', error.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/admin/products/:id
 // @desc    Get single product by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
+// @access  Admin only
+router.get('/:id', adminAuth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
