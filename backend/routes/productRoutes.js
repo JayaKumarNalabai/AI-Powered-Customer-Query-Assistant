@@ -21,23 +21,41 @@ router.get('/', adminAuth, async (req, res) => {
 // @desc    Add a new product
 // @access  Admin only
 router.post('/', adminAuth, async (req, res) => {
-  const { name, description, price, stock, category, isActive } = req.body;
-
   try {
+    const { name, description, price, stock, category, isActive, images } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !category) {
+      return res.status(400).json({ message: 'Name, description, and category are required' });
+    }
+
+    // Validate numeric fields
+    if (typeof price !== 'number' || price < 0) {
+      return res.status(400).json({ message: 'Price must be a valid positive number' });
+    }
+
+    if (typeof stock !== 'number' || stock < 0) {
+      return res.status(400).json({ message: 'Stock must be a valid positive number' });
+    }
+
     const product = new Product({
       name,
       description,
       price,
       stock,
       category,
-      isActive,
-      createdBy: req.user.id // From adminAuth middleware
+      isActive: isActive ?? true,
+      images: images || [{ url: 'https://via.placeholder.com/150', alt: 'Product Image' }],
+      createdBy: req.user.id
     });
 
     await product.save();
     res.status(201).json(product);
   } catch (error) {
-    console.error('Add product error:', error.message);
+    console.error('Add product error:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -46,9 +64,23 @@ router.post('/', adminAuth, async (req, res) => {
 // @desc    Update a product
 // @access  Admin only
 router.put('/:id', adminAuth, async (req, res) => {
-  const { name, description, price, stock, category, isActive } = req.body;
-
   try {
+    const { name, description, price, stock, category, isActive, images } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !category) {
+      return res.status(400).json({ message: 'Name, description, and category are required' });
+    }
+
+    // Validate numeric fields
+    if (typeof price !== 'number' || price < 0) {
+      return res.status(400).json({ message: 'Price must be a valid positive number' });
+    }
+
+    if (typeof stock !== 'number' || stock < 0) {
+      return res.status(400).json({ message: 'Stock must be a valid positive number' });
+    }
+
     let product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
@@ -62,14 +94,18 @@ router.put('/:id', adminAuth, async (req, res) => {
         price,
         stock,
         category,
-        isActive
+        isActive,
+        images: images || product.images
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(product);
   } catch (error) {
-    console.error('Update product error:', error.message);
+    console.error('Update product error:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -87,7 +123,7 @@ router.delete('/:id', adminAuth, async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product removed' });
   } catch (error) {
-    console.error('Delete product error:', error.message);
+    console.error('Delete product error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -102,7 +138,7 @@ router.get('/:id', adminAuth, async (req, res) => {
 
     res.json(product);
   } catch (error) {
-    console.error('Get product error:', error.message);
+    console.error('Get product error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
