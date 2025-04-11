@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from './axiosInstance';
+import ProductList from './admin/ProductList';
 // ✅ Main Admin Dashboard Component
 const AdminDashboard = () => {
   const [chats, setChats] = useState([]);
@@ -109,6 +110,16 @@ const AdminDashboard = () => {
               Users
             </button>
           </li>
+          <li>
+            <button
+              className={`w-full text-left px-4 py-2 rounded ${
+                activeTab === 'products' ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'
+              }`}
+              onClick={() => setActiveTab('products')}
+            >
+              Products
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -163,6 +174,10 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-semibold mb-4">Users Section</h2>
             <p>This section will be implemented soon.</p>
           </div>
+        )}
+
+        {activeTab === 'products' && (
+          <ProductList />
         )}
       </div>
     </div>
