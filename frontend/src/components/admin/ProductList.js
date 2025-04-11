@@ -24,12 +24,14 @@ import {
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import axiosInstance from '../axiosInstance';
+
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formError, setFormError] = useState(null);
   const { user } = useAuth();
 
   const initialFormState = {
@@ -38,10 +40,36 @@ const ProductList = () => {
     description: '',
     category: '',
     stock: '',
-    isActive: true
+    isActive: true,
+    images: [{ url: 'https://via.placeholder.com/150', alt: 'Product Image' }]
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  const validateForm = () => {
+    if (!formData.name || formData.name.trim() === '') {
+      setFormError('Product name is required');
+      return false;
+    }
+    if (!formData.description || formData.description.trim() === '') {
+      setFormError('Description is required');
+      return false;
+    }
+    if (!formData.category || formData.category.trim() === '') {
+      setFormError('Category is required');
+      return false;
+    }
+    if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) < 0) {
+      setFormError('Price must be a valid positive number');
+      return false;
+    }
+    if (!formData.stock || isNaN(Number(formData.stock)) || Number(formData.stock) < 0) {
+      setFormError('Stock must be a valid positive number');
+      return false;
+    }
+    setFormError(null);
+    return true;
+  };
 
   const fetchProducts = async () => {
     try {
@@ -56,7 +84,7 @@ const ProductList = () => {
       setError(null);
     } catch (error) {
       console.error('Error fetching products:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message);
       setProducts([]);
     } finally {
       setLoading(false);
@@ -70,6 +98,7 @@ const ProductList = () => {
   }, [user]);
 
   const handleOpen = (product = null) => {
+    setFormError(null);
     if (product) {
       setSelectedProduct(product);
       setFormData({
@@ -78,7 +107,8 @@ const ProductList = () => {
         description: product.description,
         category: product.category,
         stock: product.stock,
-        isActive: product.isActive
+        isActive: product.isActive,
+        images: product.images || [{ url: 'https://via.placeholder.com/150', alt: 'Product Image' }]
       });
     } else {
       setSelectedProduct(null);
@@ -91,27 +121,38 @@ const ProductList = () => {
     setOpen(false);
     setSelectedProduct(null);
     setFormData(initialFormState);
+    setFormError(null);
   };
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'isActive' ? checked : value
+      [name]: name === 'isActive' ? checked : 
+              (name === 'price' || name === 'stock') ? 
+              (value === '' ? '' : Number(value)) : value
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     try {
+      const processedFormData = {
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock)
+      };
+
       if (selectedProduct) {
-        await axiosInstance.put(`/api/admin/products/${selectedProduct._id}`, formData, {
+        await axiosInstance.put(`/api/admin/products/${selectedProduct._id}`, processedFormData, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
       } else {
-        await axiosInstance.post('/api/admin/products', formData, {
+        await axiosInstance.post('/api/admin/products', processedFormData, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -122,7 +163,7 @@ const ProductList = () => {
       fetchProducts();
     } catch (error) {
       console.error('Error saving product:', error);
-      setError(error.message);
+      setFormError(error.response?.data?.message || error.message);
     }
   };
 
@@ -137,7 +178,7 @@ const ProductList = () => {
         fetchProducts();
       } catch (error) {
         console.error('Error deleting product:', error);
-        setError(error.message);
+        setError(error.response?.data?.message || error.message);
       }
     }
   };
@@ -200,7 +241,7 @@ const ProductList = () => {
                 <TableRow key={product._id}>
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell>${product.price}</TableCell>
+                  <TableCell>${product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     {product.isActive ? 'Active' : 'Inactive'}
@@ -225,6 +266,11 @@ const ProductList = () => {
           {selectedProduct ? 'Edit Product' : 'Add New Product'}
         </DialogTitle>
         <DialogContent>
+          {formError && (
+            <Alert severity="error" sx={{ mb: 2, mt: 2 }}>
+              {formError}
+            </Alert>
+          )}
           <Stack spacing={2} sx={{ mt: 2 }}>
             <TextField
               name="name"
@@ -233,6 +279,7 @@ const ProductList = () => {
               onChange={handleChange}
               fullWidth
               required
+              error={formError && !formData.name}
             />
             <TextField
               name="price"
@@ -242,6 +289,8 @@ const ProductList = () => {
               onChange={handleChange}
               fullWidth
               required
+              inputProps={{ min: 0, step: "0.01" }}
+              error={formError && (!formData.price || Number(formData.price) < 0)}
             />
             <TextField
               name="description"
@@ -251,6 +300,8 @@ const ProductList = () => {
               value={formData.description}
               onChange={handleChange}
               fullWidth
+              required
+              error={formError && !formData.description}
             />
             <TextField
               name="category"
@@ -259,6 +310,7 @@ const ProductList = () => {
               onChange={handleChange}
               fullWidth
               required
+              error={formError && !formData.category}
             />
             <TextField
               name="stock"
@@ -268,6 +320,8 @@ const ProductList = () => {
               onChange={handleChange}
               fullWidth
               required
+              inputProps={{ min: 0 }}
+              error={formError && (!formData.stock || Number(formData.stock) < 0)}
             />
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Switch
